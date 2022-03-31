@@ -78,9 +78,8 @@ func TestDecoder_Decode(t *testing.T) {
 func Example() {
 	// setup types. Note "csv" field tag.
 	type targetType struct {
-		Name        string `csv:"name"`
-		Age         *int   `csv:"age"`
-		NonCSVField string
+		Name string `csv:"name"`
+		Age  *int   `csv:"age"`
 	}
 
 	fields := []string{"name", "age"}
@@ -112,5 +111,17 @@ func Example() {
 		results = append(results, target)
 	}
 
-	fmt.Printf("Found %d results with values:\n%#v\n", len(results), results)
+	fmt.Printf("Found %d results\n", len(results))
+	for _, result := range results {
+		age := "nil"
+		if result.Age != nil {
+			age = fmt.Sprintf("%d", *result.Age)
+		}
+		fmt.Printf("%s: %s\n", result.Name, age)
+	}
+
+	// Output:
+	// Found 2 results
+	// John Smith: 40
+	// Jane Doe: nil
 }
