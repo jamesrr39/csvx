@@ -47,6 +47,7 @@ See also the example on [pkg.go.dev](https://pkg.go.dev/github.com/jamesrr39/csv
 - [x] bool (`true`, `yes`, `1`, `1.0` = true, `false`, `no`, `0`, `0.0` = false, other values result in an error)
 
 - [x] Pointer types to above underlying types, e.g. `*string` (empty string and `null` result in `nil` being set on the Go struct)
+- [x] Custom non-struct types, e.g. `type Name string`, so long as the underlying type is in the list above.
 
 ## Performance
 
