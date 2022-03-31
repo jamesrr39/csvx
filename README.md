@@ -1,6 +1,5 @@
 # CSVX
-
-(https://pkg.go.dev/github.com/jamesrr39/csvx?status.svg)](https://pkg.go.dev/github.com/jamesrr39/csvx)
+[![GoDoc](https://pkg.go.dev/github.com/jamesrr39/csvx?status.svg)](https://pkg.go.dev/github.com/jamesrr39/csvx)
 
 `csvx` is a package with a CSV struct scanner for Go. It is licensed under the permissive Apache 2 license, so it can be used in open and closed source projects alike.
 
