@@ -2,6 +2,28 @@
 
 `csvx` is a package with a CSV struct scanner for Go. It is licensed under the permissive Apache 2 license, so it can be used in open and closed source projects alike.
 
+## Usage
+
+Use with the stdlib `csv` reader. use this library to quickly turn `[]string` into an object.
+
+```
+type targetType struct {
+    Name        string `csv:"name"`
+    Age         *int   `csv:"age"`
+    NonCSVField string
+}
+
+fields := []string{"name", "age"}
+decoder := NewDecoder(fields)
+
+target := new(targetType)
+err := decoder.Decode([]string{"John Smith","40"}, target)
+if err != nil {
+    panic(err)
+}
+
+fmt.Printf("result: %#v\n", target)
+```
 
 ## Implemented Types
 
@@ -18,9 +40,9 @@
 - [x] uint8
 - [x] float64
 - [x] float32
-- [x] bool ("true", "yes", "1", "1.0" = true, "false", "no", "0", "0.0" = false)
+- [x] bool (`true`, `yes`, `1`, `1.0` = true, `false`, `no`, `0`, `0.0` = false, other values result in an error)
 
-- [x] Pointer types to above underlying types, e.g. `*string` (empty string and `"null"` result in `nil` being set on the Go struct)
+- [x] Pointer types to above underlying types, e.g. `*string` (empty string and `null` result in `nil` being set on the Go struct)
 
 ## Performance
 

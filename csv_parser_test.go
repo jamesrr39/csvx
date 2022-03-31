@@ -76,9 +76,7 @@ func TestDecoder_Decode(t *testing.T) {
 }
 
 func Example() {
-	// setup types. Note csv
-	type namedType string
-
+	// setup types. Note "csv" field tag.
 	type targetType struct {
 		Name        string `csv:"name"`
 		Age         *int   `csv:"age"`
