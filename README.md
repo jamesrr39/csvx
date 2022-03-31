@@ -12,7 +12,7 @@ Use with the stdlib `csv` reader. use this library to quickly turn `[]string` in
 type targetType struct {
     Name        string `csv:"name"`
     Age         *int   `csv:"age"`
-    NonCSVField string
+    NonCSVField string // field will be ignored by struct scanner, since it is missing the "csv" tag
 }
 
 fields := []string{"name", "age"}
