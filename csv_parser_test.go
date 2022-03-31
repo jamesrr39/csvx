@@ -1,10 +1,14 @@
-package dal
+package csvx
 
 import (
+	"bytes"
+	"encoding/csv"
 	"fmt"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDecoder_Decode(t *testing.T) {
@@ -29,63 +33,86 @@ func TestDecoder_Decode(t *testing.T) {
 	ptrStringVal := "PtrStringVal..."
 	ptrFloat64Val := 50.5
 
-	type fields struct {
-		Fields []string
+	fields := []string{"string", "int", "int64", "namedType", "ptrInt", "ptrIntNull", "ptrBool", "ptrString", "float64", "ptrFloat64"}
+	decoder := NewDecoder(fields)
+
+	csvData := bytes.NewBufferString(`Hello World!,50,50,Hello World 2!,21,,true,PtrStringVal...,50.5,50.5`)
+
+	wanted := &targetType{
+		String:     "Hello World!",
+		Int:        50,
+		Int64:      50,
+		NamedType:  "Hello World 2!",
+		PtrInt:     &ptrIntVal,
+		PtrIntNull: nil,
+		PtrBool:    &ptrBoolVal,
+		PtrString:  &ptrStringVal,
+		Float64:    50.5,
+		PtrFloat64: &ptrFloat64Val,
 	}
-	type args struct {
-		values []string
-		target interface{}
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wanted  *targetType
-		wantErr bool
-	}{
-		{
-			fields: fields{
-				Fields: []string{"string", "int", "int64", "namedType", "ptrInt", "ptrIntNull", "ptrBool", "ptrString", "float64", "ptrFloat64"},
-			},
-			args: args{
-				values: []string{
-					"Hello World!",
-					"50",
-					"50",
-					"Hello World 2!",
-					fmt.Sprintf("%d", *&ptrIntVal),
-					"",
-					"true",
-					ptrStringVal,
-					"50.5",
-					fmt.Sprintf("%v", ptrFloat64Val),
-				},
-				target: new(targetType),
-			},
-			wanted: &targetType{
-				String:     "Hello World!",
-				Int:        50,
-				Int64:      50,
-				NamedType:  "Hello World 2!",
-				PtrInt:     &ptrIntVal,
-				PtrIntNull: nil,
-				PtrBool:    &ptrBoolVal,
-				PtrString:  &ptrStringVal,
-				Float64:    50.5,
-				PtrFloat64: &ptrFloat64Val,
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := &Decoder{
-				Fields: tt.fields.Fields,
-			}
-			if err := d.Decode(tt.args.values, tt.args.target); (err != nil) != tt.wantErr {
-				t.Errorf("Decoder.Decode() error = %v, wantErr %v", err, tt.wantErr)
+
+	var results []*targetType
+
+	reader := csv.NewReader(csvData)
+	for {
+		valueStrings, err := reader.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
 			}
 
-			assert.Equal(t, tt.wanted, tt.args.target)
-		})
+			require.NoError(t, err)
+		}
+
+		target := new(targetType)
+		err = decoder.Decode(valueStrings, target)
+		require.NoError(t, err)
+
+		results = append(results, target)
 	}
+
+	require.Len(t, results, 1)
+	assert.Equal(t, wanted, results[0])
+}
+
+func Example() {
+	// setup types. Note csv
+	type namedType string
+
+	type targetType struct {
+		Name        string `csv:"name"`
+		Age         *int   `csv:"age"`
+		NonCSVField string
+	}
+
+	fields := []string{"name", "age"}
+	decoder := NewDecoder(fields)
+
+	csvData := bytes.NewBufferString("John Smith,40\nJane Doe,")
+
+	var results []*targetType
+
+	// use stdlib csv reader to read line by line []string slices
+	reader := csv.NewReader(csvData)
+	for {
+		valueStrings, err := reader.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+
+			// unexpected error
+			panic(err)
+		}
+
+		target := new(targetType)
+		err = decoder.Decode(valueStrings, target)
+		if err != nil {
+			panic(err)
+		}
+
+		results = append(results, target)
+	}
+
+	fmt.Printf("Found %d results with values:\n%#v\n", len(results), results)
 }

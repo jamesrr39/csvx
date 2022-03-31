@@ -1,4 +1,4 @@
-package dal
+package csvx
 
 import (
 	"fmt"
@@ -130,7 +130,7 @@ func setField(field reflect.Value, fieldKind reflect.Kind, valueStr string, isPt
 			field.SetBool(val)
 		}
 	case reflect.Pointer:
-		if valueStr == "" {
+		if valueStr == "" || valueStr == "null" {
 			// leave field nil
 			return nil
 		}
