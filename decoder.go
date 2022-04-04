@@ -8,11 +8,18 @@ import (
 )
 
 type Decoder struct {
-	fields []string
+	fields                      []string
+	NullText                    string
+	BoolTrueText, BoolFalseText []string
 }
 
 func NewDecoder(fields []string) *Decoder {
-	return &Decoder{fields}
+	return &Decoder{
+		fields:        fields,
+		NullText:      "null",
+		BoolTrueText:  []string{"true", "yes", "1", "1.0"},
+		BoolFalseText: []string{"false", "no", "0", "0.0"},
+	}
 }
 
 func (d *Decoder) Decode(values []string, target interface{}) error {
@@ -39,7 +46,7 @@ func (d *Decoder) Decode(values []string, target interface{}) error {
 
 		valueStr := values[i]
 
-		err := setField(field, field.Kind(), valueStr, false)
+		err := d.setField(field, field.Kind(), valueStr, false)
 		if err != nil {
 			return fmt.Errorf("csvx: error setting field. Value: %q, field index: %d. Error: %s", valueStr, i, err)
 		}
@@ -48,7 +55,7 @@ func (d *Decoder) Decode(values []string, target interface{}) error {
 	return nil
 }
 
-func setField(field reflect.Value, fieldKind reflect.Kind, valueStr string, isPtr bool) error {
+func (d *Decoder) setField(field reflect.Value, fieldKind reflect.Kind, valueStr string, isPtr bool) error {
 	switch fieldKind {
 	case reflect.String:
 		if isPtr {
@@ -101,7 +108,7 @@ func setField(field reflect.Value, fieldKind reflect.Kind, valueStr string, isPt
 			field.SetFloat(val)
 		}
 	case reflect.Bool:
-		val, err := boolValueFromStr(valueStr)
+		val, err := d.boolValueFromStr(valueStr)
 		if err != nil {
 			return err
 		}
@@ -111,12 +118,12 @@ func setField(field reflect.Value, fieldKind reflect.Kind, valueStr string, isPt
 			field.SetBool(val)
 		}
 	case reflect.Pointer:
-		if valueStr == "" || valueStr == "null" {
+		if valueStr == "" || valueStr == d.NullText {
 			// leave field nil
 			return nil
 		}
 
-		setField(field, field.Type().Elem().Kind(), valueStr, true)
+		d.setField(field, field.Type().Elem().Kind(), valueStr, true)
 	default:
 		return fmt.Errorf("field type not implemented: %s", fieldKind)
 	}
@@ -124,11 +131,12 @@ func setField(field reflect.Value, fieldKind reflect.Kind, valueStr string, isPt
 	return nil
 }
 
-func boolValueFromStr(valueStr string) (bool, error) {
-	switch strings.ToLower(valueStr) {
-	case "true", "yes", "1", "1.0":
+func (d *Decoder) boolValueFromStr(valueStr string) (bool, error) {
+	valToLower := strings.ToLower(valueStr)
+	if stringSliceContains(d.BoolTrueText, valToLower) {
 		return true, nil
-	case "false", "no", "0", "0.0":
+	}
+	if stringSliceContains(d.BoolFalseText, valToLower) {
 		return false, nil
 	}
 
@@ -148,4 +156,14 @@ func bitSizeFromKind(kind reflect.Kind) int {
 	}
 
 	panic(fmt.Sprintf("kind not handled: %s", kind))
+}
+
+func stringSliceContains(searchingIn []string, lookingFor string) bool {
+	for _, item := range searchingIn {
+		if item == lookingFor {
+			return true
+		}
+	}
+
+	return false
 }

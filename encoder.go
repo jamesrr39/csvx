@@ -8,9 +8,9 @@ import (
 
 type Encoder struct {
 	fields                      []string
-	floatFmt                    byte
-	nullText                    string
-	boolTrueText, boolFalseText string
+	FloatFmt                    byte
+	NullText                    string
+	BoolTrueText, BoolFalseText string
 }
 
 func NewEncoder(fields []string) *Encoder {
@@ -49,7 +49,7 @@ func (e *Encoder) toString(field reflect.Value) (string, error) {
 	kind := field.Kind()
 	if kind == reflect.Pointer {
 		if field.IsNil() {
-			return e.nullText, nil
+			return e.NullText, nil
 		}
 
 		return e.toString(field.Elem())
@@ -63,13 +63,13 @@ func (e *Encoder) toString(field reflect.Value) (string, error) {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return strconv.FormatUint(field.Uint(), 10), nil
 	case reflect.Float32, reflect.Float64:
-		return strconv.FormatFloat(field.Float(), e.floatFmt, -1, 64), nil
+		return strconv.FormatFloat(field.Float(), e.FloatFmt, -1, 64), nil
 	case reflect.Bool:
 		val := field.Bool()
 		if val {
-			return e.boolTrueText, nil
+			return e.BoolTrueText, nil
 		}
-		return e.boolFalseText, nil
+		return e.BoolFalseText, nil
 	default:
 		return "", fmt.Errorf("toString not implemented for kind %q", kind)
 	}
