@@ -75,7 +75,7 @@ func TestDecoder_Decode(t *testing.T) {
 	assert.Equal(t, wanted, results[0])
 }
 
-func Example() {
+func ExampleDecoder() {
 	// setup types. Note "csv" field tag.
 	type targetType struct {
 		Name string `csv:"name"`

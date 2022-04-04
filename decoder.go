@@ -8,19 +8,11 @@ import (
 )
 
 type Decoder struct {
-	Fields []string
+	fields []string
 }
 
 func NewDecoder(fields []string) *Decoder {
 	return &Decoder{fields}
-}
-
-type InvalidUnmarshalError struct {
-	goType reflect.Type
-}
-
-func (e InvalidUnmarshalError) Error() string {
-	return fmt.Sprintf("csvx: unmarshal target must be a non-nil pointer, but got %s", e.goType)
 }
 
 func (d *Decoder) Decode(values []string, target interface{}) error {
@@ -30,25 +22,14 @@ func (d *Decoder) Decode(values []string, target interface{}) error {
 		return &InvalidUnmarshalError{reflect.TypeOf(target)}
 	}
 
-	if len(values) != len(d.Fields) {
-		return fmt.Errorf("csvx: amount of fields (%d) does not match amount of values passed in (%d)", len(d.Fields), len(values))
+	if len(values) != len(d.fields) {
+		return fmt.Errorf("csvx: amount of fields (%d) does not match amount of values passed in (%d)", len(d.fields), len(values))
 	}
 
 	elem := reflect.TypeOf(target).Elem()
+	fieldIndexByName := buildFieldIndexByName(rv, elem)
 
-	fieldIndexByName := make(map[string]int)
-	for i := 0; i < rv.Elem().NumField(); i++ {
-		field := elem.Field(i)
-
-		fieldTag := field.Tag.Get("csv")
-		if fieldTag == "" {
-			// no "csv" tag set, skip this field
-			continue
-		}
-		fieldIndexByName[fieldTag] = i
-	}
-
-	for i, fieldName := range d.Fields {
+	for i, fieldName := range d.fields {
 		fieldIndex, ok := fieldIndexByName[fieldName]
 		if !ok {
 			return fmt.Errorf("csv: could not find field %q in struct. Make sure the tag 'csv' is set.", fieldName)
@@ -60,7 +41,7 @@ func (d *Decoder) Decode(values []string, target interface{}) error {
 
 		err := setField(field, field.Kind(), valueStr, false)
 		if err != nil {
-			return fmt.Errorf("csvx: error setting field. Value: %q, field index: %d. Error: %s", err, i, valueStr)
+			return fmt.Errorf("csvx: error setting field. Value: %q, field index: %d. Error: %s", valueStr, i, err)
 		}
 	}
 
