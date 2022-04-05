@@ -12,7 +12,7 @@ Use with the stdlib `csv` reader. Use this library to quickly turn `[]string` in
 type targetType struct {
     Name        string `csv:"name"`
     Age         *int   `csv:"age"`
-    NonCSVField string
+    NonCSVField string // field will be ignored by struct scanner, since it is missing the "csv" tag
 }
 
 // decoding
@@ -58,6 +58,7 @@ See also the example on [pkg.go.dev](https://pkg.go.dev/github.com/jamesrr39/csv
 - [x] bool (`true`, `yes`, `1`, `1.0` = true, `false`, `no`, `0`, `0.0` = false, other values result in an error)
 
 - [x] Pointer types to above underlying types, e.g. `*string` (empty string and `null` result in `nil` being set on the Go struct)
+- [x] Custom non-struct types, e.g. `type Name string`, so long as the underlying type is in the list above.
 
 ## Performance
 
