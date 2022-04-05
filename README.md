@@ -6,7 +6,7 @@
 
 ## Usage
 
-Use with the stdlib `csv` reader. Use this library to quickly turn `[]string` into an object.
+Use with the stdlib `csv` reader. Use this library to quickly turn `[]string` into an object, or an object into `[]string`.
 
 ```
 type targetType struct {
