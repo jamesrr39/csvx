@@ -34,7 +34,7 @@ func TestDecoder_Decode(t *testing.T) {
 	ptrFloat64Val := 50.5
 
 	fields := []string{"string", "int", "int64", "namedType", "ptrInt", "ptrIntNull", "ptrBool", "ptrString", "float64", "ptrFloat64"}
-	decoder := NewDecoder(fields)
+	decoder := NewDecoderWithDefaultOpts(fields)
 
 	csvData := bytes.NewBufferString(`Hello World!,50,50,Hello World 2!,21,,true,PtrStringVal...,50.5,50.5`)
 
@@ -83,7 +83,7 @@ func ExampleDecoder() {
 	}
 
 	fields := []string{"name", "age"}
-	decoder := NewDecoder(fields)
+	decoder := NewDecoderWithDefaultOpts(fields)
 
 	csvData := bytes.NewBufferString("John Smith,40\nJane Doe,")
 

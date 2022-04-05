@@ -20,7 +20,7 @@ func TestEncoder_Encode(t *testing.T) {
 		ignorePackageLocalField string
 	}
 
-	encoder := NewEncoder([]string{"id", "age", "name", "score", "isAdult"})
+	encoder := NewEncoderWithDefaultOpts([]string{"id", "age", "name", "score", "isAdult"})
 
 	object1 := objectType{
 		ID:          20,
@@ -62,14 +62,13 @@ func ExampleEncoder() {
 		Height: 1.567,
 	}
 
-	encoder := NewEncoder([]string{"id", "name", "height"})
+	encoder := NewEncoderWithDefaultOpts([]string{"id", "name", "height"})
 
 	fields, err := encoder.Encode(obj)
 	if err != nil {
 		panic(err)
 	}
 
-	// bb := bytes.NewBuffer(nil)
 	w := csv.NewWriter(os.Stdout)
 	err = w.Write(fields)
 	if err != nil {

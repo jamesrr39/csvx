@@ -2,11 +2,11 @@
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/jamesrr39/csvx)](https://pkg.go.dev/github.com/jamesrr39/csvx)
 
-`csvx` is a package with a CSV struct scanner for Go. It is licensed under the permissive Apache 2 license, so it can be used in open and closed source projects alike.
+`csvx` is a package with a CSV encoder and decoder for Go. It is licensed under the permissive Apache 2 license.
 
 ## Usage
 
-Use with the stdlib `csv` reader. use this library to quickly turn `[]string` into an object.
+Use with the stdlib `csv` reader. Use this library to quickly turn `[]string` into an object.
 
 ```
 type targetType struct {
@@ -15,8 +15,10 @@ type targetType struct {
     NonCSVField string
 }
 
+// decoding
+
 fields := []string{"name", "age"}
-decoder := NewDecoder(fields)
+decoder := NewDecoderWithDefaultOpts(fields)
 
 target := new(targetType)
 err := decoder.Decode([]string{"John Smith","40"}, target)
@@ -25,6 +27,15 @@ if err != nil {
 }
 
 fmt.Printf("result: %#v\n", target)
+
+// encoding
+encoder := NewEncoderWithDefaultOpts(fields)
+records, err := encoder.Encode(target)
+if err != nil {
+    panic(err)
+}
+
+fmt.Printf("records: %#v\n", records)
 ```
 
 See also the example on [pkg.go.dev](https://pkg.go.dev/github.com/jamesrr39/csvx#example-package)

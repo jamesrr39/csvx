@@ -8,14 +8,14 @@ import (
 )
 
 type Decoder struct {
-	fields                      []string
+	Fields                      []string
 	NullText                    string
 	BoolTrueText, BoolFalseText []string
 }
 
-func NewDecoder(fields []string) *Decoder {
+func NewDecoderWithDefaultOpts(fields []string) *Decoder {
 	return &Decoder{
-		fields:        fields,
+		Fields:        fields,
 		NullText:      "null",
 		BoolTrueText:  []string{"true", "yes", "1", "1.0"},
 		BoolFalseText: []string{"false", "no", "0", "0.0"},
@@ -29,14 +29,14 @@ func (d *Decoder) Decode(values []string, target interface{}) error {
 		return &InvalidUnmarshalError{reflect.TypeOf(target)}
 	}
 
-	if len(values) != len(d.fields) {
-		return fmt.Errorf("csvx: amount of fields (%d) does not match amount of values passed in (%d)", len(d.fields), len(values))
+	if len(values) != len(d.Fields) {
+		return fmt.Errorf("csvx: amount of fields (%d) does not match amount of values passed in (%d)", len(d.Fields), len(values))
 	}
 
 	elem := reflect.TypeOf(target).Elem()
 	fieldIndexByName := buildFieldIndexByName(rv, elem)
 
-	for i, fieldName := range d.fields {
+	for i, fieldName := range d.Fields {
 		fieldIndex, ok := fieldIndexByName[fieldName]
 		if !ok {
 			return fmt.Errorf("csv: could not find field %q in struct. Make sure the tag 'csv' is set.", fieldName)

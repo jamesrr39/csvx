@@ -7,18 +7,22 @@ import (
 )
 
 type Encoder struct {
-	fields                      []string
+	Fields                      []string
 	FloatFmt                    byte
 	NullText                    string
 	BoolTrueText, BoolFalseText string
 }
 
-func NewEncoder(fields []string) *Encoder {
+func NewEncoderWithDefaultOpts(fields []string) *Encoder {
 	return &Encoder{fields, 'f', "null", "true", "false"}
 }
 
 func (e *Encoder) Encode(target interface{}) ([]string, error) {
 	var err error
+
+	if len(e.Fields) == 0 {
+		return nil, fmt.Errorf("no fields selected for encoding")
+	}
 
 	rv := reflect.ValueOf(target)
 
@@ -28,7 +32,7 @@ func (e *Encoder) Encode(target interface{}) ([]string, error) {
 
 	values := make([]string, len(fieldIndexByName))
 
-	for i, fieldName := range e.fields {
+	for i, fieldName := range e.Fields {
 		fieldIndex, ok := fieldIndexByName[fieldName]
 		if !ok {
 			return nil, fmt.Errorf("csv: could not find field %q in struct. Make sure the tag 'csv' is set.", fieldName)
