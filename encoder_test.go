@@ -22,32 +22,36 @@ func TestEncoder_Encode(t *testing.T) {
 
 	encoder := NewEncoderWithDefaultOpts([]string{"id", "age", "name", "score", "isAdult"})
 
-	object1 := objectType{
-		ID:          20,
-		Age:         nil,
-		Name:        "Test1",
-		Score:       1.23,
-		IsAdult:     false,
-		IgnoreField: true,
-	}
+	t.Run("object1", func(t *testing.T) {
+		object1 := objectType{
+			ID:          20,
+			Age:         nil,
+			Name:        "Test1",
+			Score:       1.23,
+			IsAdult:     false,
+			IgnoreField: true,
+		}
 
-	fields, err := encoder.Encode(object1)
-	require.NoError(t, err)
-	assert.Equal(t, []string{"20", "null", "Test1", "1.23", "false"}, fields)
+		fields, err := encoder.Encode(object1)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"20", "null", "Test1", "1.23", "false"}, fields)
+	})
 
-	age2 := uint(50)
-	object2 := &objectType{
-		ID:          21,
-		Age:         &age2,
-		Name:        "Test2",
-		Score:       2.5,
-		IsAdult:     false,
-		IgnoreField: true,
-	}
+	t.Run("object2", func(t *testing.T) {
+		age2 := uint(50)
+		object2 := &objectType{
+			ID:          21,
+			Age:         &age2,
+			Name:        "Test2",
+			Score:       2.5,
+			IsAdult:     false,
+			IgnoreField: true,
+		}
 
-	fields, err = encoder.Encode(object2)
-	require.NoError(t, err)
-	assert.Equal(t, []string{"21", "50", "Test2", "2.5", "false"}, fields)
+		fields, err := encoder.Encode(object2)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"21", "50", "Test2", "2.5", "false"}, fields)
+	})
 }
 
 func ExampleEncoder() {
@@ -83,4 +87,33 @@ func ExampleEncoder() {
 
 	// Output:
 	// 123,Test 987,1.567
+}
+
+func Test_embedded_struct(t *testing.T) {
+	type EmbeddedType struct {
+		Field1 string `csv:"field1"`
+	}
+
+	type EmbeddedType2 struct {
+		Field2 int     `csv:"field2"`
+		Field3 float64 `csv:"field3"`
+	}
+
+	type myType struct {
+		*EmbeddedType // pointer
+		EmbeddedType2 // not pointer
+	}
+
+	obj := myType{
+		EmbeddedType:  &EmbeddedType{Field1: "Test1"},
+		EmbeddedType2: EmbeddedType2{Field2: 50},
+	}
+
+	encoder := NewEncoderWithDefaultOpts([]string{"field2", "field1", "field3"})
+	fields, err := encoder.Encode(obj)
+	require.NoError(t, err)
+
+	expectedResults := []string{"50", "Test1", "0"}
+
+	assert.Equal(t, expectedResults, fields)
 }

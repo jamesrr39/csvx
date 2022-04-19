@@ -1,24 +1,43 @@
 package csvx
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
-func buildFieldIndexByName(rv reflect.Value, elem reflect.Type) map[string]int {
-	obj := getUnderlyingObject(rv)
-	elem = obj.Type()
-
-	fieldIndexByName := make(map[string]int)
-	for i := 0; i < obj.NumField(); i++ {
-		field := elem.Field(i)
-
-		fieldTag := field.Tag.Get("csv")
-		if fieldTag == "" {
-			// no "csv" tag set, skip this field
-			continue
-		}
-		fieldIndexByName[fieldTag] = i
+func buildFieldIndexByName(target interface{}, fn func(fieldCsvTag string, field reflect.Value /*field reflect.StructField*/) error) error {
+	rv := reflect.ValueOf(target)
+	rt := reflect.TypeOf(target)
+	if rt.Kind() == reflect.Pointer {
+		rv = rv.Elem()
+		rt = rt.Elem()
 	}
 
-	return fieldIndexByName
+	for i := 0; i < rt.NumField(); i++ {
+		fieldV := rv.Field(i)
+		fieldT := rt.Field(i)
+
+		csvTag := fieldT.Tag.Get("csv")
+		if csvTag != "" {
+			err := fn(csvTag, fieldV)
+			if err != nil {
+				return err
+			}
+		}
+
+		if fieldT.Anonymous {
+			if csvTag != "" {
+				return fmt.Errorf("csv tag on anonymous field not supported")
+			}
+
+			err := buildFieldIndexByName(fieldV.Interface(), fn)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func getUnderlyingObject(rv reflect.Value) reflect.Value {
