@@ -34,7 +34,7 @@ func TestDecoder_Decode(t *testing.T) {
 	ptrFloat64Val := 50.5
 
 	fields := []string{"string", "int", "int64", "namedType", "ptrInt", "ptrIntNull", "ptrBool", "ptrString", "float64", "ptrFloat64"}
-	decoder := NewDecoderWithDefaultOpts(fields)
+	decoder := NewDecoder(fields)
 
 	csvData := bytes.NewBufferString(`Hello World!,50,50,Hello World 2!,21,,true,PtrStringVal...,50.5,50.5`)
 
@@ -83,7 +83,7 @@ func ExampleDecoder() {
 	}
 
 	fields := []string{"name", "age"}
-	decoder := NewDecoderWithDefaultOpts(fields)
+	decoder := NewDecoder(fields)
 
 	csvData := bytes.NewBufferString("John Smith,40\nJane Doe,")
 
@@ -151,7 +151,7 @@ func Test_embedded_struct_decode(t *testing.T) {
 
 		values := []string{"50", "Test1", "0", "Test2"}
 
-		decoder := NewDecoderWithDefaultOpts([]string{"field2", "field1", "field3", "field4"})
+		decoder := NewDecoder([]string{"field2", "field1", "field3", "field4"})
 		err := decoder.Decode(values, &obj)
 		require.Error(t, err)
 	})
@@ -163,7 +163,7 @@ func Test_embedded_struct_decode(t *testing.T) {
 
 		values := []string{"50", "Test1", "0", "Test2"}
 
-		decoder := NewDecoderWithDefaultOpts([]string{"field2", "field1", "field3", "field4"})
+		decoder := NewDecoder([]string{"field2", "field1", "field3", "field4"})
 		err := decoder.Decode(values, &obj)
 		require.NoError(t, err)
 

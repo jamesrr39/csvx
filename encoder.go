@@ -13,7 +13,7 @@ type Encoder struct {
 	BoolTrueText, BoolFalseText string
 }
 
-func NewEncoderWithDefaultOpts(fields []string) *Encoder {
+func NewEncoder(fields []string) *Encoder {
 	fieldsMap := make(map[string]int)
 	for i, field := range fields {
 		fieldsMap[field] = i

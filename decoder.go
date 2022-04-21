@@ -13,7 +13,7 @@ type Decoder struct {
 	BoolTrueText, BoolFalseText []string
 }
 
-func NewDecoderWithDefaultOpts(fields []string) *Decoder {
+func NewDecoder(fields []string) *Decoder {
 	fieldsMap := make(map[string]int)
 	for i, field := range fields {
 		fieldsMap[field] = i
@@ -66,9 +66,7 @@ func (d *Decoder) Decode(values []string, target interface{}) error {
 
 func (d *Decoder) setField(field reflect.Value, fieldKind reflect.Kind, valueStr string, isPtr bool) error {
 	if !field.CanSet() {
-		// panic("cannot set!" + field.Type().Name())
-		field = reflect.New(reflect.Indirect(reflect.ValueOf(field.Interface())).Type()).Elem()
-
+		return fmt.Errorf("cannot set field: %q", field.Type().Name())
 	}
 	switch fieldKind {
 	case reflect.String:
