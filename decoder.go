@@ -56,7 +56,7 @@ func (d *Decoder) Decode(values []string, target interface{}) error {
 		return nil
 	}
 
-	err := buildFieldIndexByName(target, onFieldFound)
+	err := traverseFields(target, true, onFieldFound)
 	if err != nil {
 		return err
 	}
@@ -65,6 +65,11 @@ func (d *Decoder) Decode(values []string, target interface{}) error {
 }
 
 func (d *Decoder) setField(field reflect.Value, fieldKind reflect.Kind, valueStr string, isPtr bool) error {
+	if !field.CanSet() {
+		// panic("cannot set!" + field.Type().Name())
+		field = reflect.New(reflect.Indirect(reflect.ValueOf(field.Interface())).Type()).Elem()
+
+	}
 	switch fieldKind {
 	case reflect.String:
 		if isPtr {

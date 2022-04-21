@@ -89,7 +89,7 @@ func ExampleEncoder() {
 	// 123,Test 987,1.567
 }
 
-func Test_embedded_struct(t *testing.T) {
+func Test_embedded_struct_encode(t *testing.T) {
 	type EmbeddedType struct {
 		Field1 string `csv:"field1"`
 	}
@@ -99,21 +99,33 @@ func Test_embedded_struct(t *testing.T) {
 		Field3 float64 `csv:"field3"`
 	}
 
+	type SubType struct {
+		Field4 string `csv:"field4"`
+	}
+
+	type SubType2 struct {
+		Field5 string `csv:"field5"`
+	}
+
 	type myType struct {
 		*EmbeddedType // pointer
 		EmbeddedType2 // not pointer
+		SubType       SubType
+		SubType2      *SubType2
 	}
 
 	obj := myType{
 		EmbeddedType:  &EmbeddedType{Field1: "Test1"},
 		EmbeddedType2: EmbeddedType2{Field2: 50},
+		SubType:       SubType{Field4: "Test2"},
+		SubType2:      &SubType2{Field5: "Test3"},
 	}
 
-	encoder := NewEncoderWithDefaultOpts([]string{"field2", "field1", "field3"})
+	encoder := NewEncoderWithDefaultOpts([]string{"field2", "field1", "field3", "field4", "field5"})
 	fields, err := encoder.Encode(obj)
 	require.NoError(t, err)
 
-	expectedResults := []string{"50", "Test1", "0"}
+	expectedResults := []string{"50", "Test1", "0", "Test2", "Test3"}
 
 	assert.Equal(t, expectedResults, fields)
 }

@@ -2,10 +2,11 @@ package csvx
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 )
 
-func buildFieldIndexByName(target interface{}, fn func(fieldCsvTag string, field reflect.Value /*field reflect.StructField*/) error) error {
+func traverseFields(target interface{}, createMissingStructs bool, fn func(fieldCsvTag string, field reflect.Value /*field reflect.StructField*/) error) error {
 	rv := reflect.ValueOf(target)
 	rt := reflect.TypeOf(target)
 	if rt.Kind() == reflect.Pointer {
@@ -13,11 +14,15 @@ func buildFieldIndexByName(target interface{}, fn func(fieldCsvTag string, field
 		rt = rt.Elem()
 	}
 
+	println("type::", rv.Type().String(), rv.CanAddr(), rv.Type().String())
+
 	for i := 0; i < rt.NumField(); i++ {
 		fieldV := rv.Field(i)
 		fieldT := rt.Field(i)
 
-		csvTag := fieldT.Tag.Get("csv")
+		const csvTagName = "csv"
+
+		csvTag := fieldT.Tag.Get(csvTagName)
 		if csvTag != "" {
 			err := fn(csvTag, fieldV)
 			if err != nil {
@@ -25,14 +30,43 @@ func buildFieldIndexByName(target interface{}, fn func(fieldCsvTag string, field
 			}
 		}
 
-		if fieldT.Anonymous {
+		fieldUnderlyingKind := getUnderlyingObject(fieldV).Kind()
+
+		// if field is a struct, go into that struct and look for tags there
+		if fieldUnderlyingKind == reflect.Struct {
 			if csvTag != "" {
-				return fmt.Errorf("csv tag on anonymous field not supported")
+				return fmt.Errorf("csvx: %q tag on anonymous field not supported", csvTagName)
 			}
 
-			err := buildFieldIndexByName(fieldV.Interface(), fn)
+			fieldOrCreatedObjectV := fieldV
+			if createMissingStructs {
+				println("Creating missing structs...")
+				// https://github.com/robertkrimen/otto/issues/83
+				// https: //go.dev/blog/laws-of-reflection
+				fieldUnderlyingInterface := fieldV.Interface()
+				// if fieldV.Kind() == reflect.Pointer {
+				// 	fieldUnderlyingInterface = &fieldUnderlyingInterface
+				// }
+				fieldOrCreatedObjectV = reflect.New(reflect.Indirect(reflect.ValueOf(fieldUnderlyingInterface)).Type())
+
+			}
+
+			ni := fieldOrCreatedObjectV.Interface()
+			println("going into::", fieldV.Type().Name(), "::", reflect.TypeOf(ni).String(), reflect.TypeOf(&ni).String())
+			err := traverseFields(ni, createMissingStructs, fn)
 			if err != nil {
 				return err
+			}
+
+			if createMissingStructs {
+
+				if fieldV.Kind() != reflect.Pointer {
+					fieldOrCreatedObjectV = fieldOrCreatedObjectV.Elem()
+				}
+
+				log.Printf("type:: %T || %s\n", fieldOrCreatedObjectV.Interface(), fieldV.Kind().String())
+
+				fieldV.Set(fieldOrCreatedObjectV)
 			}
 		}
 	}

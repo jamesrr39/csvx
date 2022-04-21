@@ -48,7 +48,7 @@ func (e *Encoder) Encode(target interface{}) ([]string, error) {
 		return nil
 	}
 
-	err := buildFieldIndexByName(target, onFieldFound)
+	err := traverseFields(target, false, onFieldFound)
 	if err != nil {
 		return nil, err
 	}
