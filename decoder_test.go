@@ -146,84 +146,40 @@ func Test_embedded_struct_decode(t *testing.T) {
 		SubType       SubType
 	}
 
-	obj := myType{
-		// EmbeddedType:  &EmbeddedType{},
-		// EmbeddedType2: EmbeddedType2{},
-		// SubType:       SubType{},
-	}
+	t.Run("no silent fail for invalid fields", func(t *testing.T) {
+		obj := myType{}
 
-	values := []string{"50", "Test1", "0", "Test2"}
+		values := []string{"50", "Test1", "0", "Test2"}
 
-	decoder := NewDecoderWithDefaultOpts([]string{"field2", "field1", "field3", "field4"})
-	err := decoder.Decode(values, &obj)
-	require.NoError(t, err)
+		decoder := NewDecoderWithDefaultOpts([]string{"field2", "field1", "field3", "field4"})
+		err := decoder.Decode(values, &obj)
+		require.Error(t, err)
+	})
 
-	expected := myType{
-		EmbeddedType: &EmbeddedType{
-			Field1: "Test1",
-		},
-		EmbeddedType2: EmbeddedType2{
-			Field2: 50,
-			Field3: 0,
-		},
-		SubType: SubType{
-			Field4: "Test2",
-		},
-	}
+	t.Run("decode", func(t *testing.T) {
+		obj := myType{
+			EmbeddedType: &EmbeddedType{},
+		}
 
-	assert.Equal(t, expected, obj)
+		values := []string{"50", "Test1", "0", "Test2"}
+
+		decoder := NewDecoderWithDefaultOpts([]string{"field2", "field1", "field3", "field4"})
+		err := decoder.Decode(values, &obj)
+		require.NoError(t, err)
+
+		expected := myType{
+			EmbeddedType: &EmbeddedType{
+				Field1: "Test1",
+			},
+			EmbeddedType2: EmbeddedType2{
+				Field2: 50,
+				Field3: 0,
+			},
+			SubType: SubType{
+				Field4: "Test2",
+			},
+		}
+
+		assert.Equal(t, expected, obj)
+	})
 }
-
-// func Test_x(t *testing.T) {
-// 	type EmbeddedType2 struct {
-// 		Field2 int     `csv:"field2"`
-// 		Field3 float64 `csv:"field3"`
-// 	}
-
-// 	type myType struct {
-// 		EmbeddedType2 // not pointer
-// 		A             string
-// 	}
-
-// 	obj := myType{}
-// 	v := reflect.ValueOf(&obj)
-// 	Av := reflect.ValueOf(&obj.A)
-// 	Ev := reflect.ValueOf(&obj.EmbeddedType2)
-// 	FEv := reflect.ValueOf(&obj.EmbeddedType2.Field2)
-
-// 	for _, item := range []reflect.Value{v, Av, Ev, FEv} {
-// 		println(item.Type().String(), item.CanSet(), item.Elem().CanSet())
-// 	}
-
-// 	FEv.Elem().SetInt(23)
-
-// 	Evi := Ev.Interface()
-
-// 	println("==", reflect.ValueOf(Evi).Type().String(), reflect.ValueOf(Evi).Elem().CanSet())
-// 	println("::", obj.EmbeddedType2.Field2)
-// 	assert.Equal(t, nil, obj)
-// }
-
-// func Test_y(t *testing.T) {
-// 	type EmbeddedType2 struct {
-// 		Field2 int     `csv:"field2"`
-// 		Field3 float64 `csv:"field3"`
-// 	}
-
-// 	type myType struct {
-// 		EmbeddedType2 // not pointer
-// 		A             string
-// 	}
-
-// 	obj := myType{}
-
-// 	fn := func(fieldCsvTag string, field reflect.Value) error {
-// 		println("field::", fieldCsvTag, field.CanSet(), reflect.New(reflect.Indirect(field).Type()).Elem().CanSet())
-// 		return nil
-// 	}
-
-// 	err := traverseFields(&obj, true, fn)
-// 	require.NoError(t, err)
-
-// 	assert.Nil(t, false)
-// }

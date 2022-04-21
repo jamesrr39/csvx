@@ -2,7 +2,6 @@ package csvx
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 )
 
@@ -13,8 +12,6 @@ func traverseFields(target interface{}, createMissingStructs bool, fn func(field
 		rv = rv.Elem()
 		rt = rt.Elem()
 	}
-
-	println("type::", rv.Type().String(), rv.CanAddr(), rv.Type().String())
 
 	for i := 0; i < rt.NumField(); i++ {
 		fieldV := rv.Field(i)
@@ -32,6 +29,12 @@ func traverseFields(target interface{}, createMissingStructs bool, fn func(field
 
 		fieldUnderlyingKind := getUnderlyingObject(fieldV).Kind()
 
+		// reflect.Invalid for a anonymous pointer field to another struct.
+		// Can't get the information about that struct so instead insist it is already set when sending in the `target`.
+		if fieldUnderlyingKind == reflect.Invalid {
+			return fmt.Errorf("csvx: invalid type found for field %q. If an anonymous struct, please ensure this field is already created before passing in to decode", fieldT.Name)
+		}
+
 		// if field is a struct, go into that struct and look for tags there
 		if fieldUnderlyingKind == reflect.Struct {
 			if csvTag != "" {
@@ -40,31 +43,24 @@ func traverseFields(target interface{}, createMissingStructs bool, fn func(field
 
 			fieldOrCreatedObjectV := fieldV
 			if createMissingStructs {
-				println("Creating missing structs...")
+				// create a settable field. Links to understand this concept:
 				// https://github.com/robertkrimen/otto/issues/83
 				// https: //go.dev/blog/laws-of-reflection
-				fieldUnderlyingInterface := fieldV.Interface()
-				// if fieldV.Kind() == reflect.Pointer {
-				// 	fieldUnderlyingInterface = &fieldUnderlyingInterface
-				// }
-				fieldOrCreatedObjectV = reflect.New(reflect.Indirect(reflect.ValueOf(fieldUnderlyingInterface)).Type())
-
+				fieldOrCreatedObjectV = reflect.New(reflect.Indirect(reflect.ValueOf(fieldV.Interface())).Type())
 			}
 
-			ni := fieldOrCreatedObjectV.Interface()
-			println("going into::", fieldV.Type().Name(), "::", reflect.TypeOf(ni).String(), reflect.TypeOf(&ni).String())
-			err := traverseFields(ni, createMissingStructs, fn)
+			err := traverseFields(fieldOrCreatedObjectV.Interface(), createMissingStructs, fn)
 			if err != nil {
 				return err
 			}
 
 			if createMissingStructs {
-
+				// set the struct.
+				// Do this after filling in the values, as we need to send pointer fields to `traverseFields` so they are retained after function exit,
+				// but non-pointer fields must be converted to their plain type
 				if fieldV.Kind() != reflect.Pointer {
 					fieldOrCreatedObjectV = fieldOrCreatedObjectV.Elem()
 				}
-
-				log.Printf("type:: %T || %s\n", fieldOrCreatedObjectV.Interface(), fieldV.Kind().String())
 
 				fieldV.Set(fieldOrCreatedObjectV)
 			}
