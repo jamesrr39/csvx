@@ -20,7 +20,7 @@ func TestEncoder_Encode(t *testing.T) {
 		ignorePackageLocalField string
 	}
 
-	encoder := NewEncoderWithDefaultOpts([]string{"id", "age", "name", "score", "isAdult"})
+	encoder := NewEncoder([]string{"id", "age", "name", "score", "isAdult"})
 
 	t.Run("object1", func(t *testing.T) {
 		object1 := objectType{
@@ -66,7 +66,7 @@ func ExampleEncoder() {
 		Height: 1.567,
 	}
 
-	encoder := NewEncoderWithDefaultOpts([]string{"id", "name", "height"})
+	encoder := NewEncoder([]string{"id", "name", "height"})
 
 	fields, err := encoder.Encode(obj)
 	if err != nil {
@@ -95,8 +95,8 @@ func Test_embedded_struct_encode(t *testing.T) {
 	}
 
 	type EmbeddedType2 struct {
-		Field2 int     `csv:"field2"`
-		Field3 float64 `csv:"field3"`
+		Field2 int      `csv:"field2"`
+		Field3 *float64 `csv:"field3"`
 	}
 
 	type SubType struct {
@@ -116,16 +116,16 @@ func Test_embedded_struct_encode(t *testing.T) {
 
 	obj := myType{
 		EmbeddedType:  &EmbeddedType{Field1: "Test1"},
-		EmbeddedType2: EmbeddedType2{Field2: 50},
+		EmbeddedType2: EmbeddedType2{Field2: 50, Field3: toFloatPtr(10)},
 		SubType:       SubType{Field4: "Test2"},
 		SubType2:      &SubType2{Field5: "Test3"},
 	}
 
-	encoder := NewEncoderWithDefaultOpts([]string{"field2", "field1", "field3", "field4", "field5"})
+	encoder := NewEncoder([]string{"field2", "field1", "field3", "field4", "field5"})
 	fields, err := encoder.Encode(obj)
 	require.NoError(t, err)
 
-	expectedResults := []string{"50", "Test1", "0", "Test2", "Test3"}
+	expectedResults := []string{"50", "Test1", "10", "Test2", "Test3"}
 
 	assert.Equal(t, expectedResults, fields)
 }

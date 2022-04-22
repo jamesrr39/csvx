@@ -132,8 +132,8 @@ func Test_embedded_struct_decode(t *testing.T) {
 	}
 
 	type EmbeddedType2 struct {
-		Field2 int     `csv:"field2"`
-		Field3 float64 `csv:"field3"`
+		Field2 int      `csv:"field2"`
+		Field3 *float64 `csv:"field3"`
 	}
 
 	type SubType struct {
@@ -161,7 +161,7 @@ func Test_embedded_struct_decode(t *testing.T) {
 			EmbeddedType: &EmbeddedType{},
 		}
 
-		values := []string{"50", "Test1", "0", "Test2"}
+		values := []string{"50", "Test1", "10", "Test2"}
 
 		decoder := NewDecoder([]string{"field2", "field1", "field3", "field4"})
 		err := decoder.Decode(values, &obj)
@@ -173,7 +173,7 @@ func Test_embedded_struct_decode(t *testing.T) {
 			},
 			EmbeddedType2: EmbeddedType2{
 				Field2: 50,
-				Field3: 0,
+				Field3: toFloatPtr(10),
 			},
 			SubType: SubType{
 				Field4: "Test2",
@@ -182,4 +182,8 @@ func Test_embedded_struct_decode(t *testing.T) {
 
 		assert.Equal(t, expected, obj)
 	})
+}
+
+func toFloatPtr(val float64) *float64 {
+	return &val
 }
