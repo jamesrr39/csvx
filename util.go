@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func traverseFields(target interface{}, createMissingStructs bool, fn func(fieldCsvTag string, field reflect.Value /*field reflect.StructField*/) error) error {
+func traverseFields(target interface{}, createMissingStructs bool, fn func(fieldCsvTag string, field reflect.Value) error) error {
 	rv := reflect.ValueOf(target)
 	rt := reflect.TypeOf(target)
 	if rt.Kind() == reflect.Pointer {
@@ -25,6 +25,8 @@ func traverseFields(target interface{}, createMissingStructs bool, fn func(field
 			if err != nil {
 				return err
 			}
+
+			return nil
 		}
 
 		fieldUnderlyingKind := getUnderlyingObject(fieldV).Kind()
@@ -38,7 +40,7 @@ func traverseFields(target interface{}, createMissingStructs bool, fn func(field
 		// if field is a struct, go into that struct and look for tags there
 		if fieldUnderlyingKind == reflect.Struct {
 			if csvTag != "" {
-				return fmt.Errorf("csvx: %q tag on anonymous field not supported", csvTagName)
+				return fmt.Errorf("csvx: %q tag on struct-type field not supported, with encoding.TextMarshaler/encoding/TextUnmarshaler set. Field name: %s", csvTagName, fieldT.Type.String())
 			}
 
 			fieldOrCreatedObjectV := fieldV

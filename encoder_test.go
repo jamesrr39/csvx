@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -128,4 +129,18 @@ func Test_embedded_struct_encode(t *testing.T) {
 	expectedResults := []string{"50", "Test1", "10", "Test2", "Test3"}
 
 	assert.Equal(t, expectedResults, fields)
+}
+
+func Test_encode_time(t *testing.T) {
+	type MyType struct {
+		Submitted time.Time `csv:"submitted"`
+	}
+
+	obj := MyType{Submitted: time.Unix(1000000, 0)}
+
+	encoder := NewEncoder([]string{"submitted"})
+	fields, err := encoder.Encode(obj)
+	require.NoError(t, err)
+
+	assert.Equal(t, []string{"1970-01-12T14:46:40+01:00"}, fields)
 }

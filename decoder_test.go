@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -182,6 +183,20 @@ func Test_embedded_struct_decode(t *testing.T) {
 
 		assert.Equal(t, expected, obj)
 	})
+}
+
+func Test_decode_time(t *testing.T) {
+	type MyType struct {
+		Submitted time.Time `csv:"submitted"`
+	}
+
+	obj := MyType{Submitted: time.Time{}}
+
+	decoder := NewDecoder([]string{"submitted"})
+	err := decoder.Decode([]string{"1970-01-12T14:46:40+01:00"}, &obj)
+	require.NoError(t, err)
+
+	assert.Equal(t, obj.Submitted, time.Unix(1000000, 0))
 }
 
 func toFloatPtr(val float64) *float64 {
