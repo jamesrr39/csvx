@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"strconv"
 	"testing"
 	"time"
 
@@ -197,6 +198,30 @@ func Test_decode_time(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, obj.Submitted, time.Unix(1000000, 0))
+}
+
+func Test_CustomDecoderFunc(t *testing.T) {
+	decoder := NewDecoder([]string{"date"})
+	decoder.CustomDecoderMap = map[string]CustomDecoderFunc{
+		"date": func(val string) (interface{}, error) {
+			valInt, err := strconv.ParseInt(val, 10, 64)
+			if err != nil {
+				return nil, err
+			}
+
+			return time.Unix(valInt, 0), nil
+		},
+	}
+
+	type myType struct {
+		Date time.Time `csv:"date"`
+	}
+
+	obj := myType{}
+	err := decoder.Decode([]string{"1000000"}, &obj)
+	require.NoError(t, err)
+
+	assert.Equal(t, time.Unix(1000000, 0), obj.Date)
 }
 
 func toFloatPtr(val float64) *float64 {

@@ -2,6 +2,7 @@ package csvx
 
 import (
 	"encoding/csv"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -143,4 +144,24 @@ func Test_encode_time(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, []string{"1970-01-12T14:46:40+01:00"}, fields)
+}
+
+func Test_custom_encoder_field(t *testing.T) {
+	encoder := NewEncoder([]string{"name"})
+	encoder.CustomEncoderMap = map[string]CustomEncoderFunc{
+		"name": func(val interface{}) (string, error) {
+			v := val.(string)
+
+			return fmt.Sprintf("custom_name_%s", v), nil
+		},
+	}
+
+	type myType struct {
+		Name string `csv:"name"`
+	}
+
+	fields, err := encoder.Encode(myType{Name: "test1"})
+	require.NoError(t, err)
+
+	assert.Equal(t, []string{"custom_name_test1"}, fields)
 }
