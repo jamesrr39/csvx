@@ -224,13 +224,13 @@ func (d *Decoder) boolValueFromStr(valueStr string) (bool, error) {
 
 func bitSizeFromKind(kind reflect.Kind) (int, error) {
 	switch kind {
-	case reflect.Int64, reflect.Float64:
+	case reflect.Int64, reflect.Uint64, reflect.Float64:
 		return 64, nil
-	case reflect.Int32, reflect.Float32:
+	case reflect.Int32, reflect.Uint32, reflect.Float32:
 		return 32, nil
-	case reflect.Int16:
+	case reflect.Int16, reflect.Uint16:
 		return 16, nil
-	case reflect.Int8:
+	case reflect.Int8, reflect.Uint8:
 		return 8, nil
 	}
 
