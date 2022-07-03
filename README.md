@@ -2,7 +2,9 @@
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/jamesrr39/csvx)](https://pkg.go.dev/github.com/jamesrr39/csvx)
 
-`csvx` is a package with a CSV encoder and decoder for Go. It is licensed under the permissive Apache 2 license.
+`csvx` is a package with a CSV string-fields-to-struct encoder and decoder for Go. It makes converting raw strings from CSV files into objects (and vice-versa) much easier.
+
+It is licensed under the permissive Apache 2 license.
 
 ## Usage
 
