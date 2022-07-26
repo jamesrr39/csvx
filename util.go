@@ -58,7 +58,11 @@ func processField(fieldV reflect.Value, fieldT reflect.StructField, createMissin
 			// create a settable field. Links to understand this concept:
 			// https://github.com/robertkrimen/otto/issues/83
 			// https: //go.dev/blog/laws-of-reflection
-			fieldOrCreatedObjectV = reflect.New(reflect.Indirect(reflect.ValueOf(fieldV.Interface())).Type())
+			fieldOrCreatedObjectV = reflect.New(
+				reflect.Indirect(
+					reflect.ValueOf(fieldV.Interface()),
+				).Type(),
+			)
 		}
 
 		err := traverseFields(fieldOrCreatedObjectV.Interface(), createMissingStructs, fn)
